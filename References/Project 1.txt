@@ -1,0 +1,185 @@
+from bs4 import BeatifulSoup
+import pandas as pd
+import requests
+import ipywidgets as widgets
+from ipywidgets import interact
+
+
+try:
+    web_data = requests.get('https://finance.yahoo.com/quote/  /sustainability?p=    ').text
+    print("Success")
+except:
+    print("Could not get URL")
+soup = Beatifulsoap(web_data, 'html.parser')
+esg score = soup.find('div', {'class':'Fz(36px) Fw(600) D(ib) Mend(5px)'})
+print(esg_score)
+<div class="Fz(36px) Fw(600) D(ib) Mend(5px)" data-reactid="20">16</div>
+
+datapoint = esg_score.text
+datapoint
+'16'
+
+elements =[]
+scores = soup.find_all('div', {'class': 'D(ib) Fz(23px) smartphone Fz/(22px) Fw(600)'})
+for score in scores:
+    elements.append(score.text)
+
+elements
+['0.4', '9.9', '5.2']
+
+controversy_score = soup.find('div', {'class':'D(ib) Fz(36px) Fw(500)'})
+controversy_datapoint = controversy_score.text
+
+
+df = pd.DataFrame({'Total ESG Score': datapoint,
+                   'Environment Score': elements[0],
+                   'Social Score': elements[1],
+		   'Governance Score': elements[2],
+		   'Controversy Score': controversy_datapoint},
+		index=['  '])
+df
+
+def get_tickers():
+	wiki_page = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies').text
+	sp_data = pd.read_html(wiki_page)
+	ticker_df = sp_data[0]
+	ticker_options = ticker_df['Symbol']
+	return ticker_options
+
+def web_scraper(ticker):
+	elements = []
+	web_data = requests.get('https://finance.yahoo.com/quote/'+ticker+'/sustainability?p='+ticker).text
+	soup = BeautifulSoup(web_data, 'html.parser')
+	esg_score = soup.find('div', {'class':'Fz(36px) Fw(600) D(ib) Mend(5px)'})
+	datapoint = esg_score.text
+	controversy_score = soup.find('div', {'class':'D(ib) Fz(36px) Fw(500)'})
+	controversyz_datapoint = controversy_score.text
+	scores = soup.find_all('div'{'class': 'D(ib) Fz(23px) smartphone_Fz(22px) Fw(600)'})
+        for score in scores:
+		elements.append(score.text)
+	
+	df = pd.DataFrame({'Total ESG Score': datapoint,
+                   'Environment Score': elements[0],
+                   'Social Score': elements[1],
+		   'Governance Score': elements[2],
+		   'Controversy Score': controversy_datapoint},
+		index=[ticker])
+	df = df.astype('float')	
+	df['Controversy Assessment'] = df.apply(lambda x: level(x['Controversy Score']), axis=1)
+	return df	
+
+def level(x):
+	if x == 0.0:
+		return 'No Controversy'
+	elif x == 1.0:
+		return 'Little Controversy'
+	elif x == 2.0:
+		return 'Relatively High Controversy'
+	else: 
+		return 'Severe Controversy'
+
+@interact
+def get_esg(ticker=widgets.Dropdown(description='Ticker',
+				    options=get_tickers(),
+				    value = 'F')):
+	esg_data = web_scraper(ticker)
+	return esg_data
+
+
+
+Dashboard
+
+
+pip install streamlit 
+pip install iexfinance
+
+Next, download the stock ticker file from my GitHub and save it as ticker_data.csv: https://github.com/cbecks1212/Finance_Dashboard/blob/master/ticker_data.csv
+
+After that, open your favorite text editor (I like Atom or Visual Studio Code) and create a new file, finance_dashboard.py
+
+Writing the Code:
+After we’ve created our python file, we are ready to start coding! First, import the necessary packages (simply pip install any of these packages that you might not have):
+
+#import packages 
+from datetime import datetime 
+from iexfinance.stocks import get_historical_data 
+import pandas as pd 
+import streamlit as st 
+import plotly.express as px 
+import plotly.graph_objects as go 
+import yfinance as yf 
+from plotly.subplots import make_subplots
+
+Next we create a date range and load our stock ticker file. This file will be used to populate a menu of stocks that a user can a user can choose from:
+
+#create date range 
+start = datetime(2019, 1, 1) end = datetime.today() 
+#get ticker data 
+ticker_df = pd.read_csv('ticker_data.csv') 
+tickers = ticker_df.Symbol.values.tolist()
+
+After we’ve written our preliminary lines of code, let’s start making our dashboard! Type the following:
+
+#create title for dashboard 
+st.title('Finance Portal') 
+
+#create sidebar with options
+sidebar = st.sidebar.selectbox('Select an Option',['Stocks', 'Crypto','Fixed Income'])
+
+We created a title for our dashboard and also a sidebar with options, allowing users to retrieve stock, fixed income or crypto related data. For the sake of this article, we’ll only focus on the stock portion. Finally, to see what your dashboard looks like so far, open a terminal and change to the directory where you saved the python script and type the following, which will launch a web-browser page with your dashboard:
+
+#change directories, if needed cd your directory 
+#Activate your dashboard 
+streamlit run finance_dashboard.py
+
+Now let’s populate our dashboard with some data! Let’s begin with the following:
+
+if sidebar == 'Stocks': 
+   exchange = st.radio('select an exchange or Ticker', ['S&P 500', 'Nasdaq', 'Search by Ticker']) 
+   if exchange == 'S&P 500': 
+      dropdown = st.selectbox('Select a Ticker', tickers) 
+      df = get_historical_data( dropdown, start, end, output_format='pandas', token='YOUR API key') 
+      fig = px.line(df, x=df.index, y=df.close, title=str(dropdown)+' 2019 Performance')
+
+Breaking this down, on the stock page we are creating three buttons that filter the universe of stocks from which a user can select. Next, a dropdown menu is created with a list of stocks to browse, based on the chosen exchange. Data is then fetched and put into a pandas data frame and then displayed in a graph (remember to provide your api token, which IEX provides, in the token argument of the get_historical_data function).
+
+Let’s refresh our webpage (Hello, Data!). You’ll now be able to search any publicly traded stock you’d like and see it’s 2019 performance.
+We can now visually see a stock’s performance for the year. Let’s now put an exact number on it. Below the plotly_chart(fig) line, under the S&P 500 section, type the following:
+
+first_value = df.close.iloc[0] 
+last_value = df.close.iloc[-1] 
+change = (last_value - first_value)/first_value 
+if change > 0: 
+   st.write("This stock was up {:.2f}".format(change)+ '%') 
+elif change < 0: 
+   st.write("This stock was down {:.2f}".format(change)+ '%')
+
+To quickly summarize, we get the first and last price observations for our chosen stock and compute the percentage change, which will be displayed below our graph. Let’s quickly refresh our dashboard to see the change:
+Finally, let’s add one last bit to our dashboard. Investment performance is bench-marked by the market’s performance as a whole, typically the S&P 500. To measure our stock’s performance against the S&P 500, we need to fetch S&P 500 data, which cannot be done with iexfinace, last time I checked. We’ll use yfinance-yahoo finance-instead.
+Let’s create a sub-header to our page and use yfinance to retrieve the data:
+
+#create subheader 
+st.subheader('Did Your Stock Beat the market?') 
+#get S&P 500 data 
+df2 = yf.download('%5EGSPC', start=start, end=end)
+
+After we’ve retrieved the S&P 500 data, we calculate its performance for the year, graph it and then compare it to our stock:
+
+#first observation sp_perf_1 = df2.Close.iloc[0] 
+#last observation sp_perf_last = df2.Close.iloc[-1] 
+#calculate % 
+change sp_perf = (sp_perf_last-sp_perf_1)/sp_perf_1 
+#graph data 
+perf_graph = make_subplots(specs=[[{"secondary_y": True}]]) perf_graph.add_trace(go.Scatter(x=df2.index, y=df2.Close, mode='lines', name='S&P 500'),secondary_y=False) 
+perf_graph.add_trace(go.Scatter(x=df.index, y=df.close, mode='lines', name=dropdown),secondary_y=True) #display graph 
+#display chart
+st.plotly_chart(perf_graph) #display percentage change st.write("S&P's Performance: {:.2f} ".format(sp_perf)) st.write(dropdown + "'s performance: {:.2f} ".format(change))
+
+Refresh the page one last time, and voila! We now have a fully functional dashboard!
+
+
+	 
+
+
+
+
