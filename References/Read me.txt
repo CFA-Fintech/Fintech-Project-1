@@ -1,0 +1,12 @@
+REadme 
+
+As mentioned before, with Financial Modeling Prep, you can pull a variety of financial data
+Suppose you want to assess year over year financial growth for a group of stocks,
+we need to create a function that pulls data from a company’s income statement and then calculating a yearly change for the following items
+
+revenue 
+net income
+earnings per growth
+EBITDA growth
+
+
