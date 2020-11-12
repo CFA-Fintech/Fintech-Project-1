@@ -6,7 +6,7 @@ from ipywidgets import interact
 
 
 try:
-    web_data = requests.get('https://finance.yahoo.com/quote/MSFT/sustainability?p=MSFT').text
+    web_data = requests.get('https://finance.yahoo.com/quote/  /sustainability?p=    ').text
     print("Success")
 except:
     print("Could not get URL")
@@ -36,7 +36,7 @@ df = pd.DataFrame({'Total ESG Score': datapoint,
                    'Social Score': elements[1],
 		   'Governance Score': elements[2],
 		   'Controversy Score': controversy_datapoint},
-		index=['MSFT'])
+		index=['  '])
 df
 
 def get_tickers():
