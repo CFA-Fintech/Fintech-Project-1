@@ -1,0 +1,87 @@
+from bs4 import BeatifulSoup
+import pandas as pd
+import requests
+import ipywidgets as widgets
+from ipywidgets import interact
+
+
+try:
+    web_data = requests.get('https://finance.yahoo.com/quote/MSFT/sustainability?p=MSFT').text
+    print("Success")
+except:
+    print("Could not get URL")
+soup = Beatifulsoap(web_data, 'html.parser')
+esg score = soup.find('div', {'class':'Fz(36px) Fw(600) D(ib) Mend(5px)'})
+print(esg_score)
+<div class="Fz(36px) Fw(600) D(ib) Mend(5px)" data-reactid="20">16</div>
+
+datapoint = esg_score.text
+datapoint
+'16'
+
+elements =[]
+scores = soup.find_all('div', {'class': 'D(ib) Fz(23px) smartphone Fz/(22px) Fw(600)'})
+for score in scores:
+    elements.append(score.text)
+
+elements
+['0.4', '9.9', '5.2']
+
+controversy_score = soup.find('div', {'class':'D(ib) Fz(36px) Fw(500)'})
+controversy_datapoint = controversy_score.text
+
+
+df = pd.DataFrame({'Total ESG Score': datapoint,
+                   'Environment Score': elements[0],
+                   'Social Score': elements[1],
+		   'Governance Score': elements[2],
+		   'Controversy Score': controversy_datapoint},
+		index=['MSFT'])
+df
+
+def get_tickers():
+	wiki_page = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies').text
+	sp_data = pd.read_html(wiki_page)
+	ticker_df = sp_data[0]
+	ticker_options = ticker_df['Symbol']
+	return ticker_options
+
+def web_scraper(ticker):
+	elements = []
+	web_data = requests.get('https://finance.yahoo.com/quote/'+ticker+'/sustainability?p='+ticker).text
+	soup = BeautifulSoup(web_data, 'html.parser')
+	esg_score = soup.find('div', {'class':'Fz(36px) Fw(600) D(ib) Mend(5px)'})
+	datapoint = esg_score.text
+	controversy_score = soup.find('div', {'class':'D(ib) Fz(36px) Fw(500)'})
+	controversyz_datapoint = controversy_score.text
+	scores = soup.find_all('div'{'class': 'D(ib) Fz(23px) smartphone_Fz(22px) Fw(600)'})
+        for score in scores:
+		elements.append(score.text)
+	
+	df = pd.DataFrame({'Total ESG Score': datapoint,
+                   'Environment Score': elements[0],
+                   'Social Score': elements[1],
+		   'Governance Score': elements[2],
+		   'Controversy Score': controversy_datapoint},
+		index=[ticker])
+	df = df.astype('float')	
+	df['Controversy Assessment'] = df.apply(lambda x: level(x['Controversy Score']), axis=1)
+	return df	
+
+def level(x):
+	if x == 0.0:
+		return 'No Controversy'
+	elif x == 1.0:
+		return 'Little Controversy'
+	elif x == 2.0:
+		return 'Relatively High Controversy'
+	else: 
+		return 'Severe Controversy'
+
+@interact
+def get_esg(ticker=widgets.Dropdown(description='Ticker',
+				    options=get_tickers(),
+				    value = 'F')):
+	esg_data = web_scraper(ticker)
+	return esg_data
+
