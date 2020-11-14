@@ -53,7 +53,7 @@ def web_scraper(ticker):
 	esg_score = soup.find('div', {'class':'Fz(36px) Fw(600) D(ib) Mend(5px)'})
 	datapoint = esg_score.text
 	controversy_score = soup.find('div', {'class':'D(ib) Fz(36px) Fw(500)'})
-	controversy_datapoint = controversy_score.text
+	controversyz_datapoint = controversy_score.text
 	scores = soup.find_all('div'{'class': 'D(ib) Fz(23px) smartphone_Fz(22px) Fw(600)'})
         for score in scores:
 		elements.append(score.text)
